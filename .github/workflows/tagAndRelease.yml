@@ -1,0 +1,107 @@
+name: Tag and Release
+
+on: workflow_dispatch
+
+jobs:
+  create-tag:
+    name: Create Tag
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Java and Maven - setup settings.xml
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          server-id: github
+          cache: 'maven'
+
+      - name: Configure Git user
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+      - name: Build and test
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Prepare release
+        run: ./mvnw release:prepare --batch-mode --no-transfer-progress -Dusername=bonitasoft-presales -Dpassword=${{ secrets.GITHUB_TOKEN }}
+
+  create-release:
+    name: Create Release
+    needs: create-tag
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Java and Maven - setup settings.xml
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          server-id: github
+          cache: 'maven'
+
+      - name: Configure Git user
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+      - name: 'Get Previous tag'
+        id: previous-tag
+        uses: "WyriHaximus/github-action-get-previous-tag@v1"
+
+      - name: Display tag
+        id: display-tag
+        run: |
+          echo "tag: ${{ steps.previous-tag.outputs.tag }}"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.previous-tag.outputs.tag }}
+
+      - name: Build and Test
+        id: build-and-test
+        run: |
+          echo "build ${{ steps.previous-tag.outputs.tag }}"
+          ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Get version from pom
+        id: get-version
+        run: |
+          VERSION=$( ./mvnw --batch-mode --no-transfer-progress help:evaluate -Dexpression=project.version -q -DforceStdout )
+          FINAL_NAME=$( ./mvnw --batch-mode --no-transfer-progress help:evaluate -Dexpression=project.build.finalName -q -DforceStdout )
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "finalName=$FINAL_NAME" >> $GITHUB_OUTPUT
+
+      - name: Display version
+        id: display-version
+        run: |
+          echo "tag: ${{ steps.previous-tag.outputs.tag }}"
+          echo "version: ${{ steps.get-version.outputs.version }}"
+          echo "final_name: ${{ steps.get-version.outputs.finalName }}"
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.previous-tag.outputs.tag }}
+          name: ${{ steps.previous-tag.outputs.tag }}
+          draft: false
+          prerelease: false
+          files: |
+            target/${{ steps.get-version.outputs.finalName }}.jar
+            target/${{ steps.get-version.outputs.finalName }}-impl.zip
+
+      - name: Publish to Github Package
+        run: ./mvnw --batch-mode --no-transfer-progress deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
