@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Get pom informations
         id: pom-info
@@ -36,7 +36,7 @@ jobs:
           package-type: "maven"
 
       - name: Clean old releases - keep last 2
-        uses: dev-drprasad/delete-older-releases@v0.2.0
+        uses: dev-drprasad/delete-older-releases@v0.3.4
         with:
           keep_latest: 2
           delete_tags: true
