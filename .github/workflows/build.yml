@@ -52,6 +52,7 @@ jobs:
           echo "final_name: ${{ steps.get-version.outputs.finalName }}"
 
       - name: Publish to Github Package
+        if: github.event_name != 'pull_request'
         run: ./mvnw --batch-mode --no-transfer-progress deploy
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

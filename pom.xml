@@ -9,6 +9,10 @@
     <packaging>jar</packaging>
 
     <properties>
+        <!-- GitHub -->
+        <github.owner>bonitasoft-presales</github.owner>
+        <github.repo>${project.artifactId}</github.repo>
+
         <!-- Maven -->
         <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -100,6 +104,19 @@
         </dependency>
 
     </dependencies>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>github</id>
+            <name>Github Package</name>
+            <url>https://maven.pkg.github.com/${github.owner}/${github.repo}</url>
+        </snapshotRepository>
+        <repository>
+            <id>github</id>
+            <name>Github Package</name>
+            <url>https://maven.pkg.github.com/${github.owner}/${github.repo}</url>
+        </repository>
+    </distributionManagement>
 
     <build>
         <defaultGoal>package</defaultGoal>
