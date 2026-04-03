@@ -3,7 +3,7 @@
 
     <groupId>org.bonitasoft.connectors</groupId>
     <artifactId>bonita-connector-jms</artifactId>
-    <version>2.0.2-SNAPSHOT</version>
+    <version>2.0.2</version>
     <name>bonita-connector-jms</name>
     <packaging>jar</packaging>
 
@@ -108,7 +108,7 @@
         <url>https://github.com/${github.owner}/${github.repo}</url>
         <developerConnection>scm:git:${project.scm.url}.git</developerConnection>
         <connection>scm:git:${project.scm.url}.git</connection>
-        <tag>HEAD</tag>
+        <tag>bonita-connector-jms-2.0.2</tag>
     </scm>
 
     <distributionManagement>
