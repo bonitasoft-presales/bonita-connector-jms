@@ -1,0 +1,45 @@
+name: Cleanup Releases and packages
+
+on: workflow_dispatch
+
+jobs:
+  Cleanup:
+    name: Delete old packages and releases
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get pom informations
+        id: pom-info
+        run: |
+          GROUP_ID=$( ./mvnw --batch-mode --no-transfer-progress help:evaluate -Dexpression=project.groupId -q -DforceStdout )
+          ARTIFACT_ID=$( ./mvnw --batch-mode --no-transfer-progress help:evaluate -Dexpression=project.artifactId -q -DforceStdout )
+          echo "group-id=$GROUP_ID" >> $GITHUB_OUTPUT
+          echo "artifact-id=$ARTIFACT_ID" >> $GITHUB_OUTPUT
+
+      - name: Display pom informations
+        run: |
+          echo "groupId: ${{ steps.pom-info.outputs.group-id }}"
+          echo "artifactId: ${{ steps.pom-info.outputs.artifact-id }}"
+
+      - name: Display packages names
+        run: echo "${{ steps.pom-info.outputs.group-id }}.${{ steps.pom-info.outputs.artifact-id }}"
+
+
+      - name: Clean old packages - keep last 2
+        uses: actions/delete-package-versions@v5
+        with:
+          min-versions-to-keep: 2
+          package-name: "${{ steps.pom-info.outputs.group-id }}.${{ steps.pom-info.outputs.artifact-id }}"
+          package-type: "maven"
+
+      - name: Clean old releases - keep last 2
+        uses: dev-drprasad/delete-older-releases@v0.2.0
+        with:
+          keep_latest: 2
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

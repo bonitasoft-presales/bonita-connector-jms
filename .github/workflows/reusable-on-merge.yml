@@ -1,0 +1,64 @@
+name: Reusable On Merge Action
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: false
+        type: string
+        default: 'production'
+      run-tests:
+        description: 'Whether to run tests'
+        required: false
+        type: boolean
+        default: true
+    outputs:
+      version:
+        description: 'Project version'
+        value: ${{ jobs.on-merge-action.outputs.version }}
+      status:
+        description: 'Execution status'
+        value: ${{ jobs.on-merge-action.outputs.status }}
+
+jobs:
+  on-merge-action:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      status: ${{ steps.set-status.outputs.status }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Java and Maven
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Get version
+        id: get-version
+        run: |
+          VERSION=$( ./mvnw --batch-mode --no-transfer-progress help:evaluate -Dexpression=project.version -q -DforceStdout )
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Project version: $VERSION"
+
+      - name: Run tests
+        if: ${{ inputs.run-tests }}
+        run: |
+          echo "Running tests for environment: ${{ inputs.environment }}"
+          ./mvnw --batch-mode --no-transfer-progress test
+
+      - name: Post-merge actions
+        run: |
+          echo "Executing post-merge actions for environment: ${{ inputs.environment }}"
+          echo "Version: ${{ steps.get-version.outputs.version }}"
+          # Add your custom logic here
+
+      - name: Set status
+        id: set-status
+        run: |
+          echo "status=success" >> $GITHUB_OUTPUT

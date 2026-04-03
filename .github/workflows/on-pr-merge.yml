@@ -1,0 +1,24 @@
+name: On PR Merge
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  trigger-on-merge:
+    name: Trigger reusable workflow on merge
+    uses: ./.github/workflows/reusable-on-merge.yml
+    with:
+      environment: 'production'
+      run-tests: true
+    secrets: inherit
+
+  display-results:
+    name: Display results
+    needs: trigger-on-merge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show outputs
+        run: |
+          echo "Version: ${{ needs.trigger-on-merge.outputs.version }}"
+          echo "Status: ${{ needs.trigger-on-merge.outputs.status }}"

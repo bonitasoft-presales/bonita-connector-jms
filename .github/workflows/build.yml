@@ -1,0 +1,58 @@
+name: Build
+concurrency:
+  group: deploy-sca-${{ github.ref }}
+  cancel-in-progress: true
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Java and Maven - setup settings.xml
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          server-id: github
+          cache: 'maven'
+
+      - name: Configure Git user
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+
+      - name: Build and Test
+        run: |
+          ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Get version
+        id: get-version
+        run: |
+          VERSION=$( ./mvnw --batch-mode --no-transfer-progress help:evaluate -Dexpression=project.version -q -DforceStdout )
+          FINAL_NAME=$( ./mvnw --batch-mode --no-transfer-progress help:evaluate -Dexpression=project.build.finalName -q -DforceStdout )
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "finalName=$FINAL_NAME" >> $GITHUB_OUTPUT
+
+      - name: Display version
+        id: display-version
+        run: |
+          echo "version: ${{ steps.get-version.outputs.version }}"
+          echo "final_name: ${{ steps.get-version.outputs.finalName }}"
+
+      - name: Publish to Github Package
+        if: github.event_name != 'pull_request'
+        run: ./mvnw --batch-mode --no-transfer-progress deploy
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
