@@ -99,7 +99,7 @@ jobs:
           prerelease: false
           files: |
             target/${{ steps.get-version.outputs.finalName }}.jar
-            target/${{ steps.get-version.outputs.finalName }}-impl.zip
+            target/${{ steps.get-version.outputs.finalName }}.zip
 
       - name: Publish to Github Package
         run: ./mvnw --batch-mode --no-transfer-progress deploy
