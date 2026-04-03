@@ -1,30 +1,71 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definition:ConnectorDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:definition="http://www.bonitasoft.org/ns/connector/definition/6.1">
-    <id>${connector-definition-id}</id> <!-- Id of the definition -->
-    <version>${connector-definition-version}</version> <!-- Version of the definition -->
-    <icon>connector.png</icon> <!-- The icon used in the Studio for this definition -->
-    <category icon="connector.png" id="Custom"/> <!-- The category of this definition, used in the Studio (e.g: http, script ...) -->
-<input mandatory="true" name="uri" type="java.lang.String"/>
-  <input mandatory="true" name="queueName" type="java.lang.String"/>
-  <input name="message" type="java.lang.String"/>
-  <input name="isBonitaDocument" type="java.lang.Boolean"/>
-  <input name="properties" type="java.util.List"/>
-  <input name="username" type="java.lang.String"/>
-  <input name="password" type="java.lang.String"/>
-  <input name="anonymous" type="java.lang.Boolean"/>
-  <page id="configurationPage">
-    <widget xsi:type="definition:Text" id="uri" inputName="uri"/>
-    <widget xsi:type="definition:Text" id="queueName" inputName="queueName"/>
-	<widget xsi:type="definition:Checkbox" id="anonymous" inputName="anonymous"/>
-	<widget xsi:type="definition:Text" id="username" inputName="username"/>
-	<widget xsi:type="definition:Text" id="password" inputName="password"/>
-  </page>
-  <page id="messagePage">
-    <widget xsi:type="definition:Text" id="messageText" inputName="message"/>
-    <widget xsi:type="definition:Checkbox" id="isDocument" inputName="isBonitaDocument"/>
-    <widget xsi:type="definition:Array" id="properties" inputName="properties" cols="2">
-      <colsCaption>Property name</colsCaption>
-      <colsCaption>Property value</colsCaption>
-    </widget>
-  </page>
+    <id>${connector-definition-id}</id>
+    <version>${connector-definition-version}</version>
+    <icon>connector.png</icon>
+    <category icon="connector.png" id="Messaging"/>
+
+    <!-- Connection inputs -->
+    <input mandatory="true" name="uri" type="java.lang.String" defaultValue="tcp://localhost:61616"/>
+    <input mandatory="true" name="queueName" type="java.lang.String"/>
+    <input name="jndiContextFactory" type="java.lang.String"/>
+    <input name="connectionFactoryName" type="java.lang.String" defaultValue="ConnectionFactory"/>
+    <input name="anonymous" type="java.lang.Boolean" defaultValue="true"/>
+    <input name="username" type="java.lang.String"/>
+    <input name="password" type="java.lang.String"/>
+
+    <!-- Operation input -->
+    <input mandatory="true" name="operation" type="java.lang.String" defaultValue="SEND"/>
+
+    <!-- Send inputs -->
+    <input name="message" type="java.lang.String"/>
+    <input name="isBonitaDocument" type="java.lang.Boolean" defaultValue="false"/>
+    <input name="properties" type="java.util.List"/>
+
+    <!-- Receive inputs -->
+    <input name="messageSelector" type="java.lang.String"/>
+    <input name="receiveTimeout" type="java.lang.Long" defaultValue="5000"/>
+
+    <!-- Outputs -->
+    <output name="statusCode" type="java.lang.Integer"/>
+    <output name="statusMessage" type="java.lang.String"/>
+    <output name="messageId" type="java.lang.String"/>
+    <output name="receivedMessage" type="java.lang.String"/>
+    <output name="receivedProperties" type="java.util.Map"/>
+
+    <!-- Page 1: Connection configuration -->
+    <page id="connectionPage">
+        <widget xsi:type="definition:Text" id="uriWidget" inputName="uri"/>
+        <widget xsi:type="definition:Text" id="queueNameWidget" inputName="queueName"/>
+        <widget xsi:type="definition:Text" id="jndiContextFactoryWidget" inputName="jndiContextFactory"/>
+        <widget xsi:type="definition:Text" id="connectionFactoryNameWidget" inputName="connectionFactoryName"/>
+        <widget xsi:type="definition:Checkbox" id="anonymousWidget" inputName="anonymous"/>
+        <widget xsi:type="definition:Text" id="usernameWidget" inputName="username"/>
+        <widget xsi:type="definition:Password" id="passwordWidget" inputName="password"/>
+    </page>
+
+    <!-- Page 2: Operation -->
+    <page id="operationPage">
+        <widget xsi:type="definition:Select" id="operationWidget" inputName="operation">
+            <items>SEND</items>
+            <items>RECEIVE</items>
+        </widget>
+    </page>
+
+    <!-- Page 3: Message (for SEND) -->
+    <page id="messagePage">
+        <widget xsi:type="definition:TextArea" id="messageWidget" inputName="message"/>
+        <widget xsi:type="definition:Checkbox" id="isBonitaDocumentWidget" inputName="isBonitaDocument"/>
+        <widget xsi:type="definition:Array" id="propertiesWidget" inputName="properties" cols="2">
+            <colsCaption>Property name</colsCaption>
+            <colsCaption>Property value</colsCaption>
+        </widget>
+    </page>
+
+    <!-- Page 4: Receive options -->
+    <page id="receivePage">
+        <widget xsi:type="definition:Text" id="messageSelectorWidget" inputName="messageSelector"/>
+        <widget xsi:type="definition:Text" id="receiveTimeoutWidget" inputName="receiveTimeout"/>
+    </page>
+
 </definition:ConnectorDefinition>
